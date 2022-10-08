@@ -46,7 +46,9 @@ module MicrosoftPartnersRestApi
     end
 
     def format_response(entity_data)
-      {code: entity_data.code, body: (entity_data.body['items'] rescue [])}
+      body = entity_data.body
+      body = body['items'] if body['items'].present?
+      {code: entity_data.code, body: body}
     end
   end
 end

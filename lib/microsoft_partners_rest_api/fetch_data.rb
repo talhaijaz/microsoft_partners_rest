@@ -32,15 +32,15 @@ module MicrosoftPartnersRestApi
 
     def fetch_entity_data
       if body[:entity] == 'InvoiceLineItems'
-        fetch_invoice_line_items(body[:invoice_id])
+        client.format_response(fetch_invoice_line_items(body[:invoice_id]))
       elsif body[:entity] == 'Customers'
         client.format_response(fetch_customers)
       elsif body[:entity] == 'Invoices'
         client.format_response(fetch_invoices)
       elsif body[:entity] == 'BillingProfile'
-        fetch_billing_profile(body[:customer_id])
+        client.format_response(fetch_billing_profile(body[:customer_id]))
       elsif body[:entity] == 'Agreements'
-        fetch_agreements(body[:customer_id])
+        client.format_response(fetch_agreements(body[:customer_id]))
       end
     end
 
@@ -49,8 +49,7 @@ module MicrosoftPartnersRestApi
         body[:provider].present? && body[:invoicelineitemtype].present?
          
       url = body[:resource] + "/invoices/#{invoice_id}/lineitems?provider=#{body[:provider]}&invoicelineitemtype=#{body[:invoicelineitemtype]}"
-      api_response = api_call(url)
-      {code: api_response.code, body: (api_response.body['items'] rescue [])}
+      api_call(url)
     end
 
     def fetch_customers
@@ -67,16 +66,14 @@ module MicrosoftPartnersRestApi
       return {code: 500, body: 'Invalid params'} unless customer_id.present?
 
       url = body[:resource] + "/customers/#{customer_id}/profiles/billing"
-      response = api_call(url)
-      {code: response.code, body: (response.body rescue [])}
+      api_call(url)
     end
 
     def fetch_agreements(customer_id)
       return {code: 500, body: 'Invalid params'} unless customer_id.present?
       
       url = body[:resource] + "/customers/#{customer_id}/agreements"
-      response = api_call(url)
-      {code: response.code, body: (response.body rescue [])}
+      api_call(url)
      end
   end
 end
