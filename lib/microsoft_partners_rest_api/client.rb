@@ -22,5 +22,31 @@ module MicrosoftPartnersRestApi
     def oauth_url
      "#{login_url}common/oauth2/authorize?client_id=#{config.client_id}&response_mode=form_post&response_type=code&scope=openid"
     end
+
+    def post_api_data(url, body)
+      begin
+        response = RestClient.post(url, body)
+        OpenStruct.new({ code: response.code, body: JSON(response.body) })
+      rescue StandardError => e
+        handle_exception(e)
+      end
+    end
+    
+    def get_api_data(url, access_token)
+      begin
+        response = RestClient.get(url, {Authorization: "Bearer #{access_token}"})
+        OpenStruct.new({ code: response.code, body: JSON(response.body) })
+      rescue StandardError => e
+        handle_exception(e)
+      end
+    end
+
+    def handle_exception(exception)
+      OpenStruct.new({ code: exception.http_code, body: 'Invalid params' })
+    end
+
+    def format_response(entity_data)
+      {code: entity_data.code, body: (entity_data.body['items'] rescue [])}
+    end
   end
 end
