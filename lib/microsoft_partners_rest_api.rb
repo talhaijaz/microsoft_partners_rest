@@ -1,5 +1,3 @@
-require 'nokogiri'
-
 require 'microsoft_partners_rest_api/version'
 require 'microsoft_partners_rest_api/config'
 require 'microsoft_partners_rest_api/client'
