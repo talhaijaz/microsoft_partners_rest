@@ -1,9 +1,10 @@
 module MicrosoftPartnersRestApi
   class FetchData
-    attr_reader :config, :body, :client, :access_token
+    attr_reader :config, :body, :client, :access_token, :api_url
 
     def initialize(body, client = MicrosoftPartnersRestApi.client)
       @config = MicrosoftPartnersRestApi.config
+      @api_url = 'https://api.partnercenter.microsoft.com/v1'
       @body = body.symbolize_keys
       @access_token = fetch_access_token
       @client = client
@@ -48,31 +49,31 @@ module MicrosoftPartnersRestApi
       return {code: 500, body: 'Invalid params'} unless invoice_id.present? &&
         body[:provider].present? && body[:invoicelineitemtype].present?
          
-      url = body[:resource] + "/invoices/#{invoice_id}/lineitems?provider=#{body[:provider]}&invoicelineitemtype=#{body[:invoicelineitemtype]}"
+      url = api_url + "/invoices/#{invoice_id}/lineitems?provider=#{body[:provider]}&invoicelineitemtype=#{body[:invoicelineitemtype]}"
       api_call(url)
     end
 
     def fetch_customers
-      url = body[:resource] + "/customers"
+      url = api_url + "/customers"
       api_call(url)
     end
 
     def fetch_invoices
-      url = body[:resource] + "/invoices"
+      url = api_url + "/invoices"
       api_call(url)
     end
 
     def fetch_billing_profile(customer_id)
       return {code: 500, body: 'Invalid params'} unless customer_id.present?
 
-      url = body[:resource] + "/customers/#{customer_id}/profiles/billing"
+      url = api_url + "/customers/#{customer_id}/profiles/billing"
       api_call(url)
     end
 
     def fetch_agreements(customer_id)
       return {code: 500, body: 'Invalid params'} unless customer_id.present?
       
-      url = body[:resource] + "/customers/#{customer_id}/agreements"
+      url = api_url + "/customers/#{customer_id}/agreements"
       api_call(url)
      end
   end

@@ -10,6 +10,14 @@ module MicrosoftPartnersRestApi
     end
 
     def fetch
+      if body[:code].present?
+        body[:resource] = 'https://api.partnercenter.microsoft.com'
+        body[:grant_type] = 'authorization_code'
+      else
+        body[:resource] = 'https://graph.windows.net'
+        body[:grant_type] = 'client_credentials'
+      end
+
       url = login_url + "#{config.tenant_id}/oauth2/token"
       client.post_api_data(url, body)
     end
