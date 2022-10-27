@@ -12,6 +12,9 @@ module MicrosoftPartnersRestApi
     end
 
     def fetch
+      return OpenStruct.new({code: 500, body: 'Invalid params'}) unless (body[:client_id].present? &&
+        body[:client_secret].present?) || body[:access_token].present?
+
       OpenStruct.new(fetch_entity_data)
     end
 
@@ -24,7 +27,7 @@ module MicrosoftPartnersRestApi
     def fetch_access_token
       if body[:access_token].present?
         body[:access_token]
-      else
+      elsif body[:client_id].present? && body[:client_secret].present?
         options = body.slice(:grant_type, :resource, :client_id, :client_secret)
         options[:resource] = 'https://graph.windows.net'
         response = MicrosoftPartnersRestApi::AccessToken.new(options).fetch
