@@ -12,7 +12,7 @@ module MicrosoftPartnersRestApi
     end
 
     def fetch
-      return OpenStruct.new({code: 500, body: 'Invalid params'}) unless (body[:client_id].present? &&
+      return invalid_params_response unless (body[:client_id].present? &&
         body[:client_secret].present?) || body[:access_token].present?
 
       OpenStruct.new(fetch_entity_data)
