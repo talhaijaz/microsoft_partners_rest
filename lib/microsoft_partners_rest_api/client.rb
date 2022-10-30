@@ -4,10 +4,10 @@ module MicrosoftPartnersRestApi
 
   class << self
     attr_accessor :client
-  end
 
-  def self.client
-    @client ||= Client.new
+    def client
+      @client ||= Client.new
+    end
   end
 
   class Client

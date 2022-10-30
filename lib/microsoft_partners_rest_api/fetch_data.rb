@@ -1,4 +1,5 @@
 module MicrosoftPartnersRestApi
+
   class FetchData
     attr_reader :config, :body, :client, :access_token, :api_url
 
@@ -27,30 +28,23 @@ module MicrosoftPartnersRestApi
         options = body.slice(:grant_type, :resource, :client_id, :client_secret)
         options[:resource] = 'https://graph.windows.net'
         response = MicrosoftPartnersRestApi::AccessToken.new(options).fetch
-        response.body['access_token'] rescue ''
+        response.body['access_token']
       end
     end
 
     def fetch_entity_data
-      if body[:entity] == 'InvoiceLineItems'
-        client.format_response(fetch_invoice_line_items(body[:invoice_id]))
-      elsif body[:entity] == 'Customers'
+      case body[:entity]
+      when 'Customers'
         client.format_response(fetch_customers)
-      elsif body[:entity] == 'Invoices'
+      when 'Invoices'
         client.format_response(fetch_invoices)
-      elsif body[:entity] == 'BillingProfile'
+      when 'BillingProfile'
         client.format_response(fetch_billing_profile(body[:customer_id]))
-      elsif body[:entity] == 'Agreements'
+      when 'Agreements'
         client.format_response(fetch_agreements(body[:customer_id]))
+      when 'InvoiceLineItems'
+        client.format_response(fetch_invoice_line_items(body[:invoice_id]))
       end
-    end
-
-    def fetch_invoice_line_items(invoice_id)
-      return {code: 500, body: 'Invalid params'} unless invoice_id.present? &&
-        body[:provider].present? && body[:invoicelineitemtype].present?
-         
-      url = api_url + "/invoices/#{invoice_id}/lineitems?provider=#{body[:provider]}&invoicelineitemtype=#{body[:invoicelineitemtype]}"
-      api_call(url)
     end
 
     def fetch_customers
@@ -64,17 +58,29 @@ module MicrosoftPartnersRestApi
     end
 
     def fetch_billing_profile(customer_id)
-      return {code: 500, body: 'Invalid params'} unless customer_id.present?
+      return customer_id_not_found unless customer_id.present?
 
       url = api_url + "/customers/#{customer_id}/profiles/billing"
       api_call(url)
     end
 
     def fetch_agreements(customer_id)
-      return {code: 500, body: 'Invalid params'} unless customer_id.present?
+      return customer_id_not_found unless customer_id.present?
       
       url = api_url + "/customers/#{customer_id}/agreements"
       api_call(url)
-     end
+    end
+
+    def fetch_invoice_line_items(invoice_id)
+      return {code: 400, body: 'InvoiceId, Provider, and InvoiceLIneItemType should be present'} unless invoice_id.present? &&
+        body[:provider].present? && body[:invoicelineitemtype].present?
+         
+      url = api_url + "/invoices/#{invoice_id}/lineitems?provider=#{body[:provider]}&invoicelineitemtype=#{body[:invoicelineitemtype]}"
+      api_call(url)
+    end
+
+    def customer_id_not_found
+      {code: 400, body: 'CustomerId should be present'}
+    end
   end
 end
