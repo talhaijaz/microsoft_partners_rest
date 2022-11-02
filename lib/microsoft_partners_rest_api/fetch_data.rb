@@ -15,7 +15,7 @@ module MicrosoftPartnersRestApi
       return invalid_params_response unless (body[:client_id].present? &&
         body[:client_secret].present?) || body[:access_token].present?
 
-      OpenStruct.new(fetch_entity_data)
+      OpenStruct.new(client.format_response(fetch_entity_data))
     end
 
     def api_call(url)
@@ -38,15 +38,15 @@ module MicrosoftPartnersRestApi
     def fetch_entity_data
       case body[:entity]
       when 'Customers'
-        client.format_response(fetch_customers)
+        fetch_customers
       when 'Invoices'
-        client.format_response(fetch_invoices)
+        fetch_invoices
       when 'BillingProfile'
-        client.format_response(fetch_billing_profile(body[:customer_id]))
+        fetch_billing_profile(body[:customer_id])
       when 'Agreements'
-        client.format_response(fetch_agreements(body[:customer_id]))
+        fetch_agreements(body[:customer_id])
       when 'InvoiceLineItems'
-        client.format_response(fetch_invoice_line_items(body[:invoice_id]))
+        fetch_invoice_line_items(body[:invoice_id])
       end
     end
 
@@ -75,7 +75,7 @@ module MicrosoftPartnersRestApi
     end
 
     def fetch_invoice_line_items(invoice_id)
-      return {code: 400, body: 'InvoiceId, Provider, and InvoiceLIneItemType should be present'} unless invoice_id.present? &&
+      return OpenStruct.new({code: 400, body: 'InvoiceId, Provider, and InvoiceLIneItemType should be present'}) unless invoice_id.present? &&
         body[:provider].present? && body[:invoicelineitemtype].present?
          
       url = api_url + "/invoices/#{invoice_id}/lineitems?provider=#{body[:provider]}&invoicelineitemtype=#{body[:invoicelineitemtype]}"
@@ -83,7 +83,11 @@ module MicrosoftPartnersRestApi
     end
 
     def customer_id_not_found
-      {code: 400, body: 'CustomerId should be present'}
+      OpenStruct.new({code: 400, body: 'CustomerId should be present'})
+    end
+    
+    def invalid_params_response
+      OpenStruct.new({code: 400, body: 'Invalid params'})
     end
   end
 end
