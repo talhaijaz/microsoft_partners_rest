@@ -42,7 +42,7 @@ module MicrosoftPartnersRestApi
     end
 
     def handle_exception(exception)
-      OpenStruct.new({ code: exception.http_code, body: 'Invalid params' })
+      OpenStruct.new({ code: exception.http_code, body: exception.http_body })
     end
 
     def format_response(entity_data)
