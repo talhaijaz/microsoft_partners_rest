@@ -41,12 +41,20 @@ module MicrosoftPartnersRestApi
         fetch_customers
       when 'Invoices'
         fetch_invoices
-      when 'BillingProfile'
-        fetch_billing_profile(body[:customer_id])
-      when 'Agreements'
-        fetch_agreements(body[:customer_id])
+      when 'CustomerBillingProfile'
+        fetch_customer_billing_profile(body[:customer_id])
+      when 'CustomerAgreements'
+        fetch_customer_agreements(body[:customer_id])
       when 'InvoiceLineItems'
         fetch_invoice_line_items(body[:invoice_id])
+      when 'CustomerSubscriptions'
+        fetch_customer_subscriptions(body[:customer_id])
+      when 'CustomerLicenses'
+        fetch_customer_licenses(body[:customer_id])
+      when 'CustomerUsers'
+        fetch_customer_users(body[:customer_id])
+      when 'CustomerUserLicenses'
+        fetch_customer_user_licenses(body[:customer_id], body[:user_id])
       end
     end
 
@@ -60,34 +68,70 @@ module MicrosoftPartnersRestApi
       api_call(url)
     end
 
-    def fetch_billing_profile(customer_id)
+    def fetch_customer_billing_profile(customer_id)
       return customer_id_not_found unless customer_id.present?
 
-      url = api_url + "/customers/#{customer_id}/profiles/billing"
+      url = customer_specific_api_url(customer_id, 'profiles/billing')  
       api_call(url)
     end
 
-    def fetch_agreements(customer_id)
+    def fetch_customer_agreements(customer_id)
       return customer_id_not_found unless customer_id.present?
       
-      url = api_url + "/customers/#{customer_id}/agreements"
+      url = customer_specific_api_url(customer_id, 'agreements')  
       api_call(url)
     end
 
     def fetch_invoice_line_items(invoice_id)
-      return OpenStruct.new({code: 400, body: 'InvoiceId, Provider, and InvoiceLIneItemType should be present'}) unless invoice_id.present? &&
+      return error_response('InvoiceId, Provider, and InvoiceLIneItemType should be present') unless invoice_id.present? &&
         body[:provider].present? && body[:invoicelineitemtype].present?
          
       url = api_url + "/invoices/#{invoice_id}/lineitems?provider=#{body[:provider]}&invoicelineitemtype=#{body[:invoicelineitemtype]}"
       api_call(url)
     end
 
+    def fetch_customer_subscriptions(customer_id)
+      return customer_id_not_found unless customer_id.present?
+      
+      url = customer_specific_api_url(customer_id, 'subscriptions')  
+      api_call(url)
+    end
+
+    def fetch_customer_licenses(customer_id)
+      return customer_id_not_found unless customer_id.present?
+      
+      url = customer_specific_api_url(customer_id, 'subscribedskus')  
+      api_call(url)
+    end
+
+    def fetch_customer_users(customer_id)
+      return customer_id_not_found unless customer_id.present?
+      
+      url = customer_specific_api_url(customer_id, 'users')  
+      api_call(url)
+    end
+
+    def fetch_customer_user_licenses(customer_id, user_id)
+      return error_response('CustomerId or UserId is missing') unless customer_id.present? || user_id.present?
+      
+      url = customer_specific_api_url(customer_id, 'users')  
+      api_call(url)
+    end
+
     def customer_id_not_found
-      OpenStruct.new({code: 400, body: 'CustomerId should be present'})
+      error_response('CustomerId should be present')
     end
     
     def invalid_params_response
-      OpenStruct.new({code: 400, body: 'Invalid params'})
+      error_response('Invalid params')
+    end
+
+    def error_response(message)
+      OpenStruct.new({code: 400, body: message})
+    end
+
+    def customer_specific_api_url(customer_id, entity_path)
+      api_url + "/customers/#{customer_id}/#{entity_path}"
     end
   end
 end
