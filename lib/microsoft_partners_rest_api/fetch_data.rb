@@ -55,6 +55,10 @@ module MicrosoftPartnersRestApi
         fetch_customer_users(body[:customer_id])
       when 'CustomerUserLicenses'
         fetch_customer_user_licenses(body[:customer_id], body[:user_id])
+      when 'CustomerLicenseUsage'
+        fetch_customer_licenses_usage(body[:customer_id])
+      when 'CustomerProducts'
+        fetch_customer_products(body[:customer_id], body[:target_view])
       end
     end
 
@@ -118,6 +122,21 @@ module MicrosoftPartnersRestApi
       api_call(url)
     end
 
+    def fetch_customer_licenses_usage(customer_id)
+      return customer_id_not_found unless customer_id.present?
+       
+      url = customer_specific_api_url(customer_id, 'analytics/licenses/usage')  
+      api_call(url)
+    end
+
+    def fetch_customer_products(customer_id, target_view)
+      return customer_id_not_found unless customer_id.present?
+      return error_response('Invalid target_view') unless valid_target_view_options.include? target_view
+      
+      url = customer_specific_api_url(customer_id, "products?targetView=#{target_view}")  
+      api_call(url)
+    end
+
     def customer_id_not_found
       error_response('CustomerId should be present')
     end
@@ -132,6 +151,14 @@ module MicrosoftPartnersRestApi
 
     def customer_specific_api_url(customer_id, entity_path)
       api_url + "/customers/#{customer_id}/#{entity_path}"
+    end
+
+    def valid_target_view_options
+      %w[Azure AzureReservations AzureReservationsVM AzureReservationsSQL
+        AzureReservationsCosmosDb MicrosoftAzure OnlineServices Software
+        SoftwareSUSELinux SoftwarePerpetual SoftwareSubscriptions
+        SpecializedOffers
+      ]
     end
   end
 end
