@@ -118,7 +118,7 @@ module MicrosoftPartnersRestApi
     def fetch_customer_user_licenses(customer_id, user_id)
       return error_response('CustomerId or UserId is missing') unless customer_id.present? || user_id.present?
       
-      url = customer_specific_api_url(customer_id, 'users')  
+      url = customer_specific_api_url(customer_id, "users/#{user_id}/licenses")  
       api_call(url)
     end
 
