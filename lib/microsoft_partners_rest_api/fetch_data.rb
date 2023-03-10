@@ -59,6 +59,8 @@ module MicrosoftPartnersRestApi
         fetch_customer_licenses_usage(body[:customer_id])
       when 'CustomerProducts'
         fetch_customer_products(body[:customer_id], body[:target_view])
+      when 'ProductSku'
+        fetch_product_sku(body[:product_id], body[:sku_id], body[:country_code])
       end
     end
 
@@ -134,6 +136,14 @@ module MicrosoftPartnersRestApi
       return error_response('Invalid target_view') unless valid_target_view_options.include? target_view
       
       url = customer_specific_api_url(customer_id, "products?targetView=#{target_view}")  
+      api_call(url)
+    end
+    
+    def fetch_product_sku(product_id, sku_id, country_code)
+      return error_response('ProductId, SkuId or CountryCode is missing') unless product_id.present? ||
+        country_code.present? || sku_id.present?
+
+      url = api_url + "/products/#{product_id}/skus/#{sku_id}?country=#{country_code}"
       api_call(url)
     end
 
