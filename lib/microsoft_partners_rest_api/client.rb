@@ -19,8 +19,9 @@ module MicrosoftPartnersRestApi
       yield @config if block_given?
     end
 
-    def oauth_url(redirect_uri=nil)
-     url = "#{login_url}common/oauth2/authorize?client_id=#{config.client_id}&response_mode=form_post&response_type=code&scope=openid"
+    def oauth_url(redirect_uri=nil, response_mode=nil)
+     url = "#{login_url}common/oauth2/authorize?client_id=#{config.client_id}&response_type=code&scope=openid"
+     url = response_mode.nil? ? url : url + "&response_mode=#{response_mode}"
      redirect_uri.nil? ? url : url + "&redirect_uri=#{redirect_uri}"
     end
 
