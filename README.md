@@ -7,7 +7,7 @@ Comments, PR's are more than welcome. I would love to hear any ideas or suggesti
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'microsoft_partners_ruby'
+gem 'microsoft_partners_rest'
 ```
 
 And then execute:
