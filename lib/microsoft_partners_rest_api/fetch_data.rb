@@ -18,8 +18,8 @@ module MicrosoftPartnersRestApi
       OpenStruct.new(client.format_response(fetch_entity_data))
     end
 
-    def api_call(url)
-      client.get_api_data(url, access_token)
+    def api_call(url, continuation_token=nil)
+      client.get_api_data(url, access_token, continuation_token)
     end
 
     private
@@ -38,7 +38,7 @@ module MicrosoftPartnersRestApi
     def fetch_entity_data
       case body[:entity]
       when 'Customers'
-        fetch_customers
+        fetch_customers(body[:size], body[:continuation_token])
       when 'Invoices'
         fetch_invoices
       when 'CustomerBillingProfile'
@@ -52,7 +52,7 @@ module MicrosoftPartnersRestApi
       when 'CustomerLicenses'
         fetch_customer_licenses(body[:customer_id])
       when 'CustomerUsers'
-        fetch_customer_users(body[:customer_id])
+        fetch_customer_users(body[:customer_id], body[:size], body[:continuation_token])
       when 'CustomerUserLicenses'
         fetch_customer_user_licenses(body[:customer_id], body[:user_id])
       when 'CustomerLicenseUsage'
@@ -62,13 +62,14 @@ module MicrosoftPartnersRestApi
       when 'ProductSku'
         fetch_product_sku(body[:product_id], body[:sku_id], body[:country_code])
       when 'SubscriptionAnalytics'
-        fetch_subscription_analytics(body[:filter])
+        fetch_subscription_analytics(body[:filter], body[:top], body[:skip])
       end
     end
 
-    def fetch_customers
+    def fetch_customers(size=nil, continuation_token=nil)
       url = api_url + "/v1/customers"
-      api_call(url)
+      url = add_pagination_url_with_token(url, size, continuation_token)
+      api_call(url, continuation_token)
     end
 
     def fetch_invoices
@@ -112,11 +113,13 @@ module MicrosoftPartnersRestApi
       api_call(url)
     end
 
-    def fetch_customer_users(customer_id)
+    def fetch_customer_users(customer_id, size=nil, continuation_token=nil)
       return customer_id_not_found unless customer_id.present?
       
       url = customer_specific_api_url(customer_id, 'users')  
-      api_call(url)
+      url = add_pagination_url_with_token(url, size, continuation_token)
+      
+      api_call(url, continuation_token)
     end
 
     def fetch_customer_user_licenses(customer_id, user_id)
@@ -149,9 +152,14 @@ module MicrosoftPartnersRestApi
       api_call(url)
     end
     
-    def fetch_subscription_analytics(filter)
+    def fetch_subscription_analytics(filter, top=nil, skip=nil)
       url = api_url + '/partner/v1/analytics/subscriptions'
-      url = url + "?filter=#{filter}" if filter.present?
+      if filter.present?
+        url = url + "?filter=#{filter}"
+        url = add_pagination_to_url(url, top, skip, true)  
+      else
+        url = add_pagination_to_url(url, top, skip)
+      end
       api_call(url)
     end
 
@@ -177,6 +185,33 @@ module MicrosoftPartnersRestApi
         SoftwareSUSELinux SoftwarePerpetual SoftwareSubscriptions
         SpecializedOffers
       ]
+    end
+
+    def add_pagination_to_url(url, top, skip, second_param=false)
+      params = ''
+
+      if second_param
+        params = params + "&top=#{top}" if top.present?
+        params = params + "&skip=#{skip}" if skip.present?
+      else
+        params = params + "?top=#{top}" if top.present?
+        if skip.present?
+          params = params + (top.present? ? "&skip=#{skip}" : "?skip=#{skip}")
+        end
+      end
+      
+      params.empty? ? url : url + params
+    end
+
+    def add_pagination_url_with_token(url, size, continuation_token)
+      if size.present?
+        url = url + "?size=#{size}"
+        url = url + "&seekOperation=Next" if continuation_token.present?
+      else
+        url = url + "?seekOperation=Next" if continuation_token.present?
+      end
+
+      url
     end
   end
 end

@@ -34,9 +34,11 @@ module MicrosoftPartnersRestApi
       end
     end
     
-    def get_api_data(url, access_token)
+    def get_api_data(url, access_token, continuation_token=nil)
       begin
-        response = RestClient.get(url, {Authorization: "Bearer #{access_token}"})
+        headers = {Authorization: "Bearer #{access_token}"}
+        headers = headers.merge!("MS-ContinuationToken" => continuation_token) if continuation_token.present?
+        response = RestClient.get(url, headers)
         OpenStruct.new({ code: response.code, body: JSON(response.body) })
       rescue StandardError => e
         handle_exception(e)
@@ -49,7 +51,6 @@ module MicrosoftPartnersRestApi
 
     def format_response(entity_data)
       body = entity_data.body
-      body = body['items'] if body['items'].present?
       {code: entity_data.code, body: body}
     end
   end
