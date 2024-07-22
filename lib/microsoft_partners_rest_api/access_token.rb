@@ -10,9 +10,11 @@ module MicrosoftPartnersRestApi
     end
 
     def fetch
+      body[:resource] = 'https://api.partnercenter.microsoft.com'
       if body[:code].present?
-        body[:resource] = 'https://api.partnercenter.microsoft.com'
         body[:grant_type] = 'authorization_code'
+      elsif body[:refresh_token].present?
+        body[:grant_type] = 'refresh_token'
       else
         body[:resource] = 'https://graph.windows.net'
         body[:grant_type] = 'client_credentials'
