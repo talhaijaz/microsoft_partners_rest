@@ -20,7 +20,7 @@ module MicrosoftPartnersRestApi
     end
 
     def oauth_url(redirect_uri=nil, response_mode=nil)
-     url = "#{login_url}common/oauth2/authorize?client_id=#{config.client_id}&response_type=code&scope=openid"
+     url = "#{login_url}common/oauth2/authorize?client_id=#{config.client_id}&response_type=code&scope=openid,offline_access"
      url = response_mode.nil? ? url : url + "&response_mode=#{response_mode}"
      redirect_uri.nil? ? url : url + "&redirect_uri=#{redirect_uri}"
     end
@@ -33,7 +33,7 @@ module MicrosoftPartnersRestApi
         handle_exception(e)
       end
     end
-    
+
     def get_api_data(url, access_token, continuation_token=nil)
       begin
         headers = {Authorization: "Bearer #{access_token}"}
